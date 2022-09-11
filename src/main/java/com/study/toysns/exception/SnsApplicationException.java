@@ -1,16 +1,21 @@
 package com.study.toysns.exception;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import static java.util.Objects.isNull;
 
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class SnsApplicationException extends RuntimeException {
 
-    private final ErrorCode errorCode;
-    private final String message;
+    private ErrorCode errorCode;
+    private String message;
+
+    public SnsApplicationException(ErrorCode errorCode) {
+        this.errorCode = errorCode;
+        this.message = null;
+    }
 
     @Override
     public String getMessage() {

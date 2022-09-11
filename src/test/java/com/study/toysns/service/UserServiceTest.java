@@ -1,5 +1,6 @@
 package com.study.toysns.service;
 
+import com.study.toysns.exception.ErrorCode;
 import com.study.toysns.exception.SnsApplicationException;
 import com.study.toysns.fixture.UserEntityFixture;
 import com.study.toysns.model.entity.UserEntity;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
 
@@ -29,6 +31,9 @@ class UserServiceTest {
     @MockBean
     private UserEntityRepository userEntityRepository;
 
+    @MockBean
+    private BCryptPasswordEncoder encoder;
+
 
     @DisplayName("회원 가입 테스트 - 정상 케이스")
     @Test
@@ -40,7 +45,8 @@ class UserServiceTest {
 
         // when
         when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty());
-        when(userEntityRepository.save(any())).thenReturn(Optional.of(fixture));
+        when(encoder.encode(password)).thenReturn("encrypt_password");
+        when(userEntityRepository.save(any())).thenReturn(UserEntityFixture.get(userName, password));
 
         // then
         Assertions.assertDoesNotThrow(() -> userService.join(userName, password));
@@ -56,10 +62,12 @@ class UserServiceTest {
 
         // when
         when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
+        when(encoder.encode(password)).thenReturn("encrypt_password");
         when(userEntityRepository.save(any())).thenReturn(Optional.of(fixture));
 
         // then
-        Assertions.assertThrows(SnsApplicationException.class, () -> userService.join(userName, password));
+        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> userService.join(userName, password));
+        Assertions.assertEquals(ErrorCode.DUPLICATED_USER_NAME, e.getErrorCode());
     }
 
     @DisplayName("로그인 테스트 - 정상 케이스")
@@ -72,6 +80,7 @@ class UserServiceTest {
 
         // when
         when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
+        when(encoder.matches(password, fixture.getPassword())).thenReturn(true);
 
         // then
         Assertions.assertDoesNotThrow(() -> userService.login(userName, password));
@@ -88,7 +97,8 @@ class UserServiceTest {
         when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty());
 
         // then
-        Assertions.assertThrows(SnsApplicationException.class, () -> userService.login(userName, password));
+        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> userService.login(userName, password));
+        Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
     }
 
     @DisplayName("로그인 테스트 - 틀린 password로 인한 실패 케이스")
@@ -104,6 +114,7 @@ class UserServiceTest {
         when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
 
         // then
-        Assertions.assertThrows(SnsApplicationException.class, () -> userService.login(userName, wrongPassword));
+        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> userService.login(userName, wrongPassword));
+        Assertions.assertEquals(ErrorCode.INTERNAL_SERVER_ERROR, e.getErrorCode());
     }
 }
