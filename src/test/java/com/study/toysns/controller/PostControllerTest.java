@@ -2,11 +2,13 @@ package com.study.toysns.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.toysns.controller.request.PostCreateRequest;
+import com.study.toysns.service.PostService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -22,6 +24,9 @@ public class PostControllerTest {
 
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
+
+    @MockBean
+    private PostService postService;
 
     public PostControllerTest(@Autowired MockMvc mockMvc, @Autowired ObjectMapper objectMapper) {
         this.mockMvc = mockMvc;
@@ -39,7 +44,7 @@ public class PostControllerTest {
         // when
 
         // then
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/post")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, body)))
                 ).andDo(MockMvcResultHandlers.print())
@@ -58,7 +63,7 @@ public class PostControllerTest {
         // when
 
         // then
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/post")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, body)))
                 ).andDo(MockMvcResultHandlers.print())

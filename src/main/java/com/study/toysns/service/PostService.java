@@ -25,6 +25,6 @@ public class PostService {
 
 
         // post save
-        postEntityRepository.save(new PostEntity());
+        postEntityRepository.save(PostEntity.of(title, body, userEntity));
     }
 }
