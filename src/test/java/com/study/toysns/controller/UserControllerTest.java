@@ -59,7 +59,7 @@ public class UserControllerTest {
 
     @DisplayName("회원 가입 테스트 - userName 중복으로 인한 실패 케이스")
     @Test
-    void givenUserInfo_whenTryingToJoin_thenReturnConflict() throws Exception {
+    void givenDuplicatedUserInfo_whenTryingToJoin_thenReturnConflict() throws Exception {
         // given
         String userName = "userName";
         String password = "password";
@@ -97,7 +97,7 @@ public class UserControllerTest {
 
     @DisplayName("로그인 테스트 - 회원 정보가 없는 userName으로 인한 실패 케이스")
     @Test
-    void givenWrongUserInfo_whenTryingToLogin_thenReturnNotFound() throws Exception {
+    void givenNotFoundUserInfo_whenTryingToLogin_thenReturnNotFound() throws Exception {
         // given
         String userName = "userName";
         String password = "password";
@@ -116,7 +116,7 @@ public class UserControllerTest {
 
     @DisplayName("로그인 테스트 - 틀린 password로 인한 실패 케이스")
     @Test
-    void givenWrongUserInfo_whenTryingToLogin_thenReturnUnauthorized() throws Exception {
+    void givenWrongPasswordUserInfo_whenTryingToLogin_thenReturnUnauthorized() throws Exception {
         // given
         String userName = "userName";
         String password = "password";

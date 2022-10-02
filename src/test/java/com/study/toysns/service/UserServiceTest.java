@@ -54,7 +54,7 @@ class UserServiceTest {
 
     @DisplayName("회원 가입 테스트 - userName 중복으로 인한 실패 케이스")
     @Test
-    void  givenUserInfo_whenTryingToJoin_thenThrowSnsApplicationException() {
+    void  givenDuplicatedUserInfo_whenTryingToJoin_thenThrowSnsApplicationException() {
         // given
         String userName = "userName";
         String password = "password";
@@ -88,7 +88,7 @@ class UserServiceTest {
 
     @DisplayName("로그인 테스트 - 회원 정보가 없는 userName으로 인한 실패 케이스")
     @Test
-    void  givenUserInfo_whenTryingToLogin_thenThrowSnsApplicationException() {
+    void  givenNotFoundUserInfo_whenTryingToLogin_thenThrowSnsApplicationException() {
         // given
         String userName = "userName";
         String password = "password";
@@ -115,6 +115,6 @@ class UserServiceTest {
 
         // then
         SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> userService.login(userName, wrongPassword));
-        Assertions.assertEquals(ErrorCode.INTERNAL_SERVER_ERROR, e.getErrorCode());
+        Assertions.assertEquals(ErrorCode.INVALID_PASSWORD, e.getErrorCode());
     }
 }
