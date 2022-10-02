@@ -2,6 +2,8 @@ package com.study.toysns.service;
 
 import com.study.toysns.exception.ErrorCode;
 import com.study.toysns.exception.SnsApplicationException;
+import com.study.toysns.fixture.PostEntityFixture;
+import com.study.toysns.fixture.UserEntityFixture;
 import com.study.toysns.model.entity.PostEntity;
 import com.study.toysns.model.entity.UserEntity;
 import com.study.toysns.repository.PostEntityRepository;
@@ -66,5 +68,71 @@ public class PostServiceTest {
         // then
         SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> postService.create(title, body, userName));
         Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+    }
+
+    @DisplayName("게시물 수정 - 정상 케이스")
+    @Test
+    void givenPostInfo_whenTryingToModify_thenReturnIsOk() {
+        // given
+        String title = "title";
+        String body = " body";
+        String userName = "userName";
+        Long userId = 1L;
+        Long postId = 1L;
+
+        PostEntity postEntity = PostEntityFixture.get(userName, userId, postId);
+        UserEntity userEntity = postEntity.getUser();
+
+        // when
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+        when(postEntityRepository.save(any())).thenReturn(postEntity);
+
+        // then
+        Assertions.assertDoesNotThrow(() -> postService.modify(title, body, userName, postId));
+    }
+
+    @DisplayName("게시물 수정 - 게시글이 존재하지 않는 케이스")
+    @Test
+    void givenPostInfo_whenTryingToModify_thenReturnIsNotFound() {
+        // given
+        String title = "title";
+        String body = " body";
+        String userName = "userName";
+        Long userId = 1L;
+        Long postId = 1L;
+
+        PostEntity postEntity = PostEntityFixture.get(userName, userId, postId);
+        UserEntity userEntity = postEntity.getUser();
+
+        // when
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
+
+        // then
+        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> postService.modify(title, body, userName, postId));
+        Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+    }
+
+    @DisplayName("게시물 수정 - 게시물 작성자가 본인이 아닌 케이스")
+    @Test
+    void givenPostInfo_whenTryingToModifyAndNotOwner_thenReturnIsUnauthorized() {
+        // given
+        String title = "title";
+        String body = " body";
+        String userName = "userName";
+        Long userId = 1L;
+        Long postId = 1L;
+
+        PostEntity postEntity = PostEntityFixture.get(userName, userId, postId);
+        UserEntity otherUserEntity = UserEntityFixture.get("therUser", "password", 2L);
+
+        // when
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(otherUserEntity));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+
+        // then
+        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> postService.modify(title, body, userName, postId));
+        Assertions.assertEquals(ErrorCode.INVALID_PERMISSION, e.getErrorCode());
     }
 }

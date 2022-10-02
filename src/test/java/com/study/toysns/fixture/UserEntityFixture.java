@@ -4,9 +4,9 @@ import com.study.toysns.model.entity.UserEntity;
 
 public class UserEntityFixture {
 
-    public static UserEntity get(String userName, String password) {
+    public static UserEntity get(String userName, String password, Long userId) {
         UserEntity entity = new UserEntity();
-        entity.setId(1L);
+        entity.setId(userId);
         entity.setUserName(userName);
         entity.setPassword(password);
 
