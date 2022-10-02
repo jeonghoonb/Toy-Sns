@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -122,7 +123,7 @@ public class PostControllerTest {
     }
 
     @DisplayName("게시물 수정 - 게시물 작성자가 본인이 아닌 케이스")
-    @WithAnonymousUser
+    @WithMockUser
     @Test
     void givenNotOwnerPostInfo_whenTryingToModify_thenReturnIsUnauthorized() throws Exception {
         // given
@@ -142,7 +143,7 @@ public class PostControllerTest {
     }
 
     @DisplayName("게시물 수정 - 해당 게시물이 존재하지 않는 케이스")
-    @WithAnonymousUser
+    @WithMockUser
     @Test
     void givenNotFoundPostInfo_whenTryingToModify_thenReturnIsNotFound() throws Exception {
         // given
@@ -157,16 +158,15 @@ public class PostControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostModifyRequest(title, body)))
                 ).andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
     @DisplayName("게시물 삭제 - 정상 케이스")
-    @WithAnonymousUser
+    @WithMockUser
     @Test
     void givenPostId_whenTryingToDelete_thenReturnIsOk() throws Exception {
         // given
-
-        // when
+        Long postId = 1L;
 
         // then
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/posts/1")
@@ -180,47 +180,111 @@ public class PostControllerTest {
     @Test
     void givenPostIdAndNotLogin_whenTryingToDelete_thenReturnIsUnauthorized() throws Exception {
         // given
-
-        // when
+        Long postId = 1L;
 
         // then
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/posts/1")
+        mockMvc.perform(MockMvcRequestBuilders.delete(String.format("/api/v1/posts/%d", postId))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
     @DisplayName("게시물 삭제 - 게시물 작성자가 본인이 아닌 케이스")
-    @WithAnonymousUser
+    @WithMockUser
     @Test
     void givenNotOwnerPostId_whenTryingToDelete_thenReturnIsUnauthorized() throws Exception {
         // given
+        Long postId = 1L;
 
         // when
         doThrow(new SnsApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).delete(any(), any());
 
         // then
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/posts/1")
+        mockMvc.perform(MockMvcRequestBuilders.delete(String.format("/api/v1/posts/%d", postId))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
     @DisplayName("게시물 삭제 - 해당 게시물이 존재하지 않는 케이스")
-    @WithAnonymousUser
+    @WithMockUser
     @Test
-    void givenNotFoundPostId_whenTryingToDelete_thenReturnIsUnauthorized() throws Exception {
+    void givenNotFoundPostId_whenTryingToDelete_thenReturnIsNotFound() throws Exception {
         // given
+        Long postId = 1L;
 
         // when
         doThrow(new SnsApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).delete(any(), any());
 
         // then
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/posts/1")
+        mockMvc.perform(MockMvcRequestBuilders.delete(String.format("/api/v1/posts/%d", postId))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
+    @DisplayName("게시물 목록 조회 - 정상 케이스")
+    @WithMockUser
+    @Test
+    void givenNothing_whenTryingToGetList_thenReturnIsOk() throws Exception {
+        // given
+
+        // when
+        when(postService.list(any())).thenReturn(Page.empty());
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/posts")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @DisplayName("게시물 목록 조회 - 비로그인 케이스")
+    @WithAnonymousUser
+    @Test
+    void givenNothing_whenTryingToGetList_thenReturnIsUnauthorized() throws Exception {
+        // given
+
+        // when
+        when(postService.list(any())).thenReturn(Page.empty());
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/posts")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    }
+
+    @DisplayName("내 피드 목록 조회 - 정상 케이스")
+    @WithMockUser
+    @Test
+    void givenNothing_whenTryingToGetMyList_thenReturnIsOk() throws Exception {
+        // given
+
+        // when
+        when(postService.my(any(), any())).thenReturn(Page.empty());
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/posts/my")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @DisplayName("내 피드 목록 조회 - 비로그인 케이스")
+    @WithAnonymousUser
+    @Test
+    void givenNothing_whenTryingToGetMyList_thenReturnIsUnauthorized() throws Exception {
+        // given
+
+        // when
+        when(postService.my(any(), any())).thenReturn(Page.empty());
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/posts/my")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    }
 
 }
