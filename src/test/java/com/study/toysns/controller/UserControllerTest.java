@@ -92,7 +92,6 @@ public class UserControllerTest {
                         .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password)))
                 ).andDo(print())
                 .andExpect(status().isOk());
-
     }
 
     @DisplayName("로그인 테스트 - 회원 정보가 없는 userName으로 인한 실패 케이스")
