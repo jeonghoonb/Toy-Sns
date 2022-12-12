@@ -40,6 +40,7 @@ public class JwtTokenUtils {
 
     private static Key getKey(String key) {
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
+        
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }
